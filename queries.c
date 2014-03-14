@@ -177,12 +177,12 @@ void query_error (long long id) {
   int error_code = fetch_int ();
   int error_len = prefetch_strlen ();
   char *error = fetch_str (error_len);
-  if (verbosity) {
+  if (verbosity > 1) {
     logprintf ( "error for query #%lld: #%d :%.*s\n", id, error_code, error_len, error);
   }
   struct query *q = query_get (id);
   if (!q) {
-    if (verbosity) {
+    if (verbosity > 1) {
       logprintf ( "No such query\n");
     }
   } else {
@@ -193,7 +193,9 @@ void query_error (long long id) {
     if (q->methods && q->methods->on_error) {
       q->methods->on_error (q, error_code, error_len, error);
     } else {
-      logprintf ( "error for query #%lld: #%d :%.*s\n", id, error_code, error_len, error);
+        if (verbosity > 1) {
+            logprintf ( "error for query #%lld: #%d :%.*s\n", id, error_code, error_len, error);
+        }
     }
     tfree (q->data, q->data_len * 4);
     tfree (q, sizeof (*q));
@@ -872,7 +874,9 @@ int msg_send_on_answer (struct query *q UU) {
       print_end ();
     }
   }
+  if(verbosity > 1){
   rprintf ("Sent: id = %d\n", id);
+  }
   bl_do_set_message_sent (M);
   return 0;
 }
@@ -946,7 +950,9 @@ void do_send_message (peer_id_t id, const char *msg, int len) {
   }
   long long t;
   secure_random (&t, 8);
-  logprintf ("t = %lld, len = %d\n", t, len);
+  if (verbosity > 1) {
+    logprintf ("t = %lld, len = %d\n", t, len);
+  }
   bl_do_send_message_text (t, our_id, get_peer_type (id), get_peer_id (id), time (0), len, msg);
   struct message *M = message_get (t);
   assert (M);

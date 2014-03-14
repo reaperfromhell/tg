@@ -28,6 +28,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #ifdef READLINE_GNU
 #include <readline/readline.h>
@@ -272,6 +273,7 @@ char *in_chat_commands[] = {
   "/quit",
   "/history",
   "/read",
+  "/clear",
   0
 };
 
@@ -560,8 +562,6 @@ void work_modifier (const char *s, int l) {
 #endif
 }
 
-
-
 void interpreter_chat_mode (char *line) {
   if (line == NULL || /* EOF received */
           !strncmp (line, "/exit", 5) || !strncmp (line, "/quit", 5)) {
@@ -579,6 +579,13 @@ void interpreter_chat_mode (char *line) {
   if (!strncmp (line, "/read", 5)) {
     do_mark_read (chat_mode_id);
     return;
+  }
+  if (!strncmp (line, "/clear", 6)){
+      pid_t i = fork();
+      static char *argv[]={"clear",NULL,NULL};
+      if (i == 0){
+          execv("/usr/bin/clear", argv);
+      }
   }
   if (strlen (line)>0) {
     do_send_message (chat_mode_id, line, strlen (line));
@@ -1468,9 +1475,9 @@ void print_message (struct message *M) {
       print_user_name (M->to_id, user_chat_get (M->to_id));
       push_color (COLOR_GREEN);
       if (M->unread) {
-        printf (" <<< ");
+          printf (" ««« ");
       } else {
-        printf (" ««« ");
+          printf (" <<< ");
       }
     } else {
       push_color (COLOR_BLUE);
@@ -1483,9 +1490,9 @@ void print_message (struct message *M) {
       print_user_name (M->from_id, user_chat_get (M->from_id));
       push_color (COLOR_BLUE);
       if (M->unread) {
-        printf (" >>> ");
+          printf (" »»» ");
       } else {
-        printf (" »»» ");
+          printf (" >>> ");
       }
       if (alert_sound) {
         play_sound();
@@ -1505,9 +1512,9 @@ void print_message (struct message *M) {
       printf (" %s", P->print_name);
       pop_color ();
       if (M->unread) {
-        printf (" <<< ");
+          printf (" ««« ");
       } else {
-        printf (" ««« ");
+          printf (" <<< ");
       }
     } else {
       push_color (COLOR_BLUE);
@@ -1519,9 +1526,9 @@ void print_message (struct message *M) {
       printf (" %s", P->print_name);
       pop_color ();
       if (M->unread) {
-        printf (" >>> ");
+          printf (" »»» ");
       } else {
-        printf (" »»» ");
+          printf (" >>> ");
       }
       if (alert_sound) {
         play_sound();
@@ -1545,9 +1552,9 @@ void print_message (struct message *M) {
       push_color (COLOR_BLUE);
     }
     if (M->unread) {
-      printf (" >>> ");
+        printf (" »»» ");
     } else {
-      printf (" »»» ");
+        printf (" >>> ");
     }
   }
   if (get_peer_type (M->fwd_from_id) == PEER_USER) {
